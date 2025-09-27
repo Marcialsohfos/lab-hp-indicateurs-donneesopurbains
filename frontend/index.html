@@ -1,0 +1,447 @@
+<---- Bienvenue dans le laboratoire d'habitat précaire et des données des opérations Urbaines ----!>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indicateurs Urbains - Cameroun</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Styles de base */
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            background: linear-gradient(135deg, #005c97, #363795);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #005c97;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        /* Styles galerie d'images */
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .image-card {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .no-image {
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 14px;
+            height: 150px;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header text-center">
+        <div class="container">
+            <h1 class="display-4">Indicateurs Urbains des Communes</h1>
+            <p class="lead">Visualisation des données des villes de Douala et Yaoundé</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Section de sélection -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Sélectionnez une ville et une commune</h5>
+                        <button id="exportBtn" class="btn btn-sm btn-success d-none">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="mb-3">
+                                    <label for="villeSelect" class="form-label">Ville</label>
+                                    <select class="form-select" id="villeSelect">
+                                        <option value="">Sélectionnez une ville</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="mb-3">
+                                    <label for="communeSelect" class="form-label">Commune</label>
+                                    <select class="form-select" id="communeSelect" disabled>
+                                        <option value="">Sélectionnez d'abord une ville</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button id="resetBtn" class="btn btn-outline-secondary w-100">
+                                    Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicateurs de chargement et erreurs -->
+        <div id="loading" class="d-none text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2">Chargement des données...</p>
+        </div>
+
+        <div id="errorContainer" class="alert alert-danger d-none" role="alert">
+            <strong>Erreur!</strong> <span id="errorMessage"></span>
+        </div>
+
+        <!-- Conteneur principal des indicateurs -->
+        <div id="indicatorsContainer" class="d-none">
+            <!-- Vos sections statistiques, graphiques, tableaux existants... -->
+            
+            <!-- NOUVELLE SECTION : Galerie d'images -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-images"></i> Galerie des tronçons de voirie
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="tronconsGallery" class="image-gallery">
+                                <!-- Rempli dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-house-damage"></i> Galerie des quartiers de taudis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="taudisGallery" class="image-gallery">
+                                <!-- Rempli dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour images -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Visualisation de l'image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" class="img-fluid" alt="" style="max-height: 70vh;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    //====================CONFIGURATION NETLIFY=====================//
+     // Configuration smart pour Netlify
+function getApiBaseUrl() {
+    const host = window.location.hostname;
+    
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://127.0.0.1:5000/api';  // Développement local
+    } else {
+        return '/.netlify/functions/api';    // Production Netlify
+    }
+}
+
+function getImageBaseUrl() {
+    const host = window.location.hostname;
+    
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return 'http://127.0.0.1:5000/images';  // Développement local
+    } else {
+        // Sur Netlify, vous devrez stocker les images ailleurs
+        return 'https://res.cloudinary.com/votre-compte/image/upload'; // Exemple Cloudinary
+    }
+}
+
+const API_BASE_URL = getApiBaseUrl();
+const IMAGE_BASE_URL = getImageBaseUrl();
+
+console.log('🌐 Configuration API:', {
+    environnement: window.location.hostname === 'localhost' ? 'Développement' : 'Production',
+    apiUrl: API_BASE_URL,
+    imageUrl: IMAGE_BASE_URL
+});
+  //FIN CONFIGURATION NETLIFY///
+    // Configuration adaptée pour la production
+
+
+    // SVG pour image manquante
+    const noImageSVG = `data:image/svg+xml;base64,${btoa(`
+        <svg width="200" height="150" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="#f8f9fa"/>
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" 
+                  fill="#6c757d" font-family="Arial" font-size="14">
+                Image non disponible
+            </text>
+        </svg>
+    `)}`;
+
+    // Fonctions pour la galerie d'images
+    function createImageCard(imageName, title, imageType, description) {
+        const card = document.createElement('div');
+        card.className = 'image-card';
+        
+        const imageUrl = imageName && imageName.trim() !== '' 
+            ? `${IMAGE_BASE_URL}/${imageType}/${encodeURIComponent(imageName)}`
+            : noImageSVG;
+
+        card.innerHTML = `
+            <div class="card h-100">
+                <div style="height: 150px; overflow: hidden; cursor: pointer;" 
+                     onclick="openModal('${imageUrl}', '${title.replace(/'/g, "\\'")}')">
+                    <img src="${imageUrl}" class="card-img-top" alt="${title}" 
+                         style="width: 100%; height: 100%; object-fit: ${imageName ? 'cover' : 'contain'};"
+                         onerror="this.src='${noImageSVG}'">
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">${title}</h6>
+                    <small class="text-muted">${description}</small>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    function displayTronconsImages(troncons) {
+        const gallery = document.getElementById('tronconsGallery');
+        gallery.innerHTML = '';
+
+        troncons.forEach(troncon => {
+            const description = `Linéaire: ${troncon.lineaire_ml}m | Classe: ${troncon.classe}`;
+            const imageCard = createImageCard(
+                troncon.image, 
+                troncon.nom, 
+                'troncons', 
+                description
+            );
+            gallery.appendChild(imageCard);
+        });
+
+        if (troncons.length === 0) {
+            gallery.innerHTML = '<p class="text-muted">Aucune image disponible</p>';
+        }
+    }
+
+    function displayTaudisImages(taudis) {
+        const gallery = document.getElementById('taudisGallery');
+        gallery.innerHTML = '';
+
+        taudis.forEach(quartier => {
+            const description = `Superficie: ${quartier.superficie_m2}m²`;
+            const imageCard = createImageCard(
+                quartier.image, 
+                quartier.nom, 
+                'taudis', 
+                description
+            );
+            gallery.appendChild(imageCard);
+        });
+
+        if (taudis.length === 0) {
+            gallery.innerHTML = '<p class="text-muted">Aucune image disponible</p>';
+        }
+    }
+
+    function displayImages(indicateurs) {
+        displayTronconsImages(indicateurs.troncons_voirie);
+        displayTaudisImages(indicateurs.quartiers_taudis);
+    }
+
+    function openModal(imageUrl, title) {
+        if (imageUrl === noImageSVG) return;
+        
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('imageModalLabel').textContent = title;
+        new bootstrap.Modal(document.getElementById('imageModal')).show();
+    }
+
+    // Charger les villes
+    function loadVilles() {
+        fetch(`${API_BASE_URL}/villes`)
+            .then(res => {
+                if (!res.ok) throw new Error('Erreur réseau');
+                return res.json();
+            })
+            .then(villes => {
+                const villeSelect = document.getElementById('villeSelect');
+                villeSelect.innerHTML = '<option value="">Sélectionnez une ville</option>';
+
+                villes.forEach(ville => {
+                    const option = document.createElement('option');
+                    option.value = ville;
+                    option.textContent = ville;
+                    villeSelect.appendChild(option);
+                });
+
+                const communeSelect = document.getElementById('communeSelect');
+                communeSelect.innerHTML = '<option value="">Sélectionnez d\'abord une ville</option>';
+                communeSelect.disabled = true;
+            })
+            .catch(err => {
+                console.error('Erreur lors du chargement des villes:', err);
+                showError('Impossible de charger la liste des villes');
+            });
+    }
+
+    // Gestion des erreurs
+    function showError(message) {
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        errorMessage.textContent = message;
+        errorContainer.classList.remove('d-none');
+    }
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', function() {
+        loadVilles();
+
+        // Charger les communes quand la ville change
+        document.getElementById('villeSelect').addEventListener('change', function () {
+            const selectedVille = this.value;
+            const communeSelect = document.getElementById('communeSelect');
+
+            if (!selectedVille) {
+                communeSelect.innerHTML = '<option value="">Sélectionnez d\'abord une ville</option>';
+                communeSelect.disabled = true;
+                return;
+            }
+
+            fetch(`${API_BASE_URL}/communes?ville=${encodeURIComponent(selectedVille)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('Erreur réseau');
+                    return res.json();
+                })
+                .then(communes => {
+                    communeSelect.innerHTML = '<option value="">Sélectionnez une commune</option>';
+                    
+                    communes.forEach(commune => {
+                        const option = document.createElement('option');
+                        // Afficher avec accent pour l'utilisateur
+                        option.textContent = commune.replace('Yaounde', 'Yaoundé');
+                        // Garder la valeur originale pour l'API
+                        option.value = commune;
+                        communeSelect.appendChild(option);
+                    });
+                    
+                    communeSelect.disabled = false;
+                })
+                .catch(err => {
+                    console.error('Erreur lors du chargement des communes:', err);
+                    communeSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                    communeSelect.disabled = true;
+                });
+        });
+
+        // Charger les indicateurs quand la commune change (VERSION CORRIGÉE)
+document.getElementById('communeSelect').addEventListener('change', function () {
+    const commune = this.value; // Utilisez la valeur telle quelle
+    
+    console.log('🔍 Commune envoyée à l\'API:', commune);
+
+    if (!commune) return;
+
+    document.getElementById('loading').classList.remove('d-none');
+    document.getElementById('indicatorsContainer').classList.add('d-none');
+    document.getElementById('errorContainer').classList.add('d-none');
+
+    fetch(`${API_BASE_URL}/indicateurs?commune=${encodeURIComponent(commune)}`)
+        .then(res => {
+            if (!res.ok) {
+                if (res.status === 404) {
+                    throw new Error('Commune non trouvée');
+                }
+                throw new Error('Erreur serveur: ' + res.status);
+            }
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('loading').classList.add('d-none');
+            // Vérifiez si la réponse contient une erreur
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            displayImages(data);
+            document.getElementById('indicatorsContainer').classList.remove('d-none');
+        })
+        .catch(err => {
+            document.getElementById('loading').classList.add('d-none');
+            console.error('Erreur détaillée:', err);
+            showError('Impossible de charger les indicateurs pour ' + commune + ' : ' + err.message);
+        });
+});
+        // Réinitialisation
+        document.getElementById('resetBtn').addEventListener('click', function () {
+            document.getElementById('villeSelect').value = '';
+            document.getElementById('communeSelect').innerHTML = '<option value="">Sélectionnez d\'abord une ville</option>';
+            document.getElementById('communeSelect').disabled = true;
+            document.getElementById('indicatorsContainer').classList.add('d-none');
+            document.getElementById('errorContainer').classList.add('d-none');
+        });
+    });
+   </script>
+</body>
+</html>
+
